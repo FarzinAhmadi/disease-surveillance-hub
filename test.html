@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Loading Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 2rem;
+            background: #1f2937;
+            color: #f3f4f6;
+        }
+        .section {
+            background: #374151;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+        .success {
+            color: #10b981;
+        }
+        .error {
+            color: #ef4444;
+        }
+        .warning {
+            color: #f59e0b;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        pre {
+            background: #1f2937;
+            padding: 1rem;
+            border-radius: 0.375rem;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Data Loading Diagnostic Test</h1>
+    <p>This page will test if your CSV files can be loaded correctly.</p>
+    
+    <button onclick="testNNDSS()">Test NNDSS Data</button>
+    <button onclick="testStates()">Test States Data</button>
+    <button onclick="testBoth()">Test Both</button>
+    
+    <div id="results"></div>
+
+    <script>
+        async function testNNDSS() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="section"><h2>Testing NNDSS Data...</h2></div>';
+            
+            try {
+                console.log('Fetching nndss_data.csv...');
+                const response = await fetch('nndss_data.csv');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                console.log('File loaded, length:', text.length);
+                
+                const result = Papa.parse(text, { header: true, dynamicTyping: false });
+                
+                const html = `
+                    <div class="section">
+                        <h2 class="success">✅ NNDSS Data Loaded Successfully</h2>
+                        <p><strong>File size:</strong> ${text.length.toLocaleString()} characters</p>
+                        <p><strong>Rows:</strong> ${result.data.length.toLocaleString()}</p>
+                        <p><strong>Columns:</strong> ${result.meta.fields.length}</p>
+                        <p><strong>Column names:</strong></p>
+                        <pre>${JSON.stringify(result.meta.fields, null, 2)}</pre>
+                        <p><strong>Unique diseases found:</strong></p>
+                        <pre>${JSON.stringify([...new Set(result.data.map(r => r.Label))].filter(l => l).sort(), null, 2)}</pre>
+                        <p><strong>Sample row:</strong></p>
+                        <pre>${JSON.stringify(result.data[0], null, 2)}</pre>
+                    </div>
+                `;
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="section">
+                        <h2 class="error">❌ Error Loading NNDSS Data</h2>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Possible causes:</strong></p>
+                        <ul>
+                            <li>File 'nndss_data.csv' not found in the same directory</li>
+                            <li>File name is incorrect (must be exactly 'nndss_data.csv')</li>
+                            <li>CORS issue (check browser console)</li>
+                            <li>File not uploaded to GitHub</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testStates() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="section"><h2>Testing States Data...</h2></div>';
+            
+            try {
+                console.log('Fetching states_data.csv...');
+                const response = await fetch('states_data.csv');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                console.log('File loaded, length:', text.length);
+                
+                const result = Papa.parse(text, { header: true, dynamicTyping: true });
+                
+                const html = `
+                    <div class="section">
+                        <h2 class="success">✅ States Data Loaded Successfully</h2>
+                        <p><strong>File size:</strong> ${text.length.toLocaleString()} characters</p>
+                        <p><strong>Rows:</strong> ${result.data.length}</p>
+                        <p><strong>Columns:</strong> ${result.meta.fields.length}</p>
+                        <p><strong>Column names:</strong></p>
+                        <pre>${JSON.stringify(result.meta.fields, null, 2)}</pre>
+                        <p><strong>Sample states:</strong></p>
+                        <pre>${JSON.stringify(result.data.slice(0, 5), null, 2)}</pre>
+                    </div>
+                `;
+                resultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="section">
+                        <h2 class="error">❌ Error Loading States Data</h2>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Possible causes:</strong></p>
+                        <ul>
+                            <li>File 'states_data.csv' not found in the same directory</li>
+                            <li>File name is incorrect (must be exactly 'states_data.csv')</li>
+                            <li>File not uploaded to GitHub</li>
+                        </ul>
+                    </div>
+                `;
+            }
+        }
+        
+        async function testBoth() {
+            await testNNDSS();
+            setTimeout(async () => {
+                const currentResults = document.getElementById('results').innerHTML;
+                const statesDiv = document.createElement('div');
+                document.getElementById('results').appendChild(statesDiv);
+                
+                try {
+                    const response = await fetch('states_data.csv');
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const text = await response.text();
+                    const result = Papa.parse(text, { header: true, dynamicTyping: true });
+                    
+                    statesDiv.innerHTML = `
+                        <div class="section">
+                            <h2 class="success">✅ States Data Also Loaded</h2>
+                            <p>Rows: ${result.data.length}</p>
+                        </div>
+                    `;
+                } catch (error) {
+                    statesDiv.innerHTML = `
+                        <div class="section">
+                            <h2 class="error">❌ States Data Failed</h2>
+                            <p>${error.message}</p>
+                        </div>
+                    `;
+                }
+            }, 1000);
+        }
+    </script>
+</body>
+</html>
