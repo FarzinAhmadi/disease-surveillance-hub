@@ -565,7 +565,7 @@
                 
                 // Process and filter data
                 const allData = nndssResult.data
-                    .filter(row => row.Label === diseaseName && !excludedAreas.includes(row['Reporting Area']))
+                    .filter(row => row.Label && row.Label.trim() === diseaseName && !excludedAreas.includes(row['Reporting Area']))
                     .map(row => processRow(row));
                 
                 diseaseData = allData;
@@ -586,10 +586,12 @@
         }
         
         function processRow(row) {
-            // Clean and convert data
+            // Clean and convert data - handle both string and numeric inputs
             const cleanNumber = (val) => {
                 if (!val || val === '-' || val === '') return 0;
-                return parseFloat(String(val).replace(/,/g, '')) || 0;
+                // Remove commas and convert to number
+                const cleaned = String(val).replace(/,/g, '').trim();
+                return parseFloat(cleaned) || 0;
             };
             
             const currentWeek = cleanNumber(row['Current week']);

@@ -7,35 +7,850 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
-        /* Same styles as disease dashboard */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #fafbfc;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+        
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #dc2626;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            color: white;
+            padding: 2rem 0;
+            border-bottom: 4px solid #dc2626;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .disease-icon {
+            font-size: 2.5rem;
+            background: #dc2626;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+        }
+        
+        .header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+        }
+        
+        .header-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 1rem;
+        }
+        
+        .last-updated {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 0.375rem;
+            display: inline-block;
+        }
+        
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-top: 1rem;
+        }
+        
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .breadcrumb a:hover {
+            opacity: 1;
+        }
+        
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .stats-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border-top: 4px solid #dc2626;
+        }
+        
+        .stats-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1f2937;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: #f9fafb;
+            border-radius: 0.5rem;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .breakdown-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .breakdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .breakdown-item {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-radius: 0.5rem;
+            border-left: 4px solid #dc2626;
+        }
+        
+        .breakdown-item h3 {
+            font-size: 1rem;
+            color: #991b1b;
+            margin-bottom: 0.75rem;
+        }
+        
+        .breakdown-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #7f1d1d;
+        }
+        
+        .chart-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #f3f4f6;
+            padding-bottom: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        .map-container {
+            height: 600px;
+        }
+        
+        .timeline-container {
+            height: 450px;
+        }
+        
+        .state-selector {
+            background: #f9fafb;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .state-selector h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: #1f2937;
+        }
+        
+        .state-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .state-btn {
+            padding: 0.5rem 0.75rem;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #374151;
+        }
+        
+        .state-btn:hover {
+            background: #f3f4f6;
+            border-color: #9ca3af;
+        }
+        
+        .state-btn.active {
+            background: #dc2626;
+            color: white;
+            border-color: #dc2626;
+        }
+        
+        .table-section {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .table-search {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            width: 250px;
+            font-size: 0.875rem;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        
+        .data-table th {
+            background: #f9fafb;
+            padding: 1rem 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        
+        .data-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .data-table tbody tr:hover {
+            background: #f9fafb;
+        }
+        
+        .footer {
+            background: #1f2937;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        
+        .footer p {
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+        }
+        
+        .nav-link {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 0.375rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin: 0.25rem;
+            transition: opacity 0.2s;
+        }
+        
+        .nav-link:hover {
+            opacity: 0.9;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Same structure as disease dashboard -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <div style="font-size: 1.1rem; color: #6b7280;">Loading measles surveillance data...</div>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">
+                <div class="disease-icon">🔴</div>
+                <h1>Measles (Total) Surveillance</h1>
+            </div>
+            <div class="header-subtitle">Combined imported and indigenous measles surveillance</div>
+            <div class="last-updated" id="lastUpdated">Data loading...</div>
+            <div class="breadcrumb">
+                <a href="index.html">🏠 Surveillance Hub</a>
+                <span>•</span>
+                <span>Measles (Total)</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="dashboard">
+        <div class="stats-section">
+            <h2 class="stats-title">📊 Current Surveillance Summary</h2>
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card"><div class="stat-value">Loading...</div></div>
+            </div>
+        </div>
+        
+        <div class="breakdown-card">
+            <h2 class="stats-title">🔍 Measles Type Breakdown</h2>
+            <div class="breakdown-grid" id="breakdownGrid">
+                <div class="breakdown-item">
+                    <h3>Imported Cases</h3>
+                    <div class="breakdown-value" id="importedCases">Loading...</div>
+                </div>
+                <div class="breakdown-item">
+                    <h3>Indigenous Cases</h3>
+                    <div class="breakdown-value" id="indigenousCases">Loading...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">🗺️ Geographic Distribution</h2>
+            </div>
+            <div id="mapChart" class="map-container"></div>
+        </div>
+        
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">📈 State Timeline Analysis</h2>
+            </div>
+            <div class="state-selector">
+                <h3>Select States to Display:</h3>
+                <div class="state-buttons" id="stateButtons"></div>
+            </div>
+            <div id="timelineChart" class="timeline-container"></div>
+        </div>
+        
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2 class="chart-title">📊 Imported vs Indigenous Comparison</h2>
+            </div>
+            <div id="comparisonChart" class="timeline-container"></div>
+        </div>
+        
+        <div class="table-section">
+            <div class="chart-header">
+                <h2 class="chart-title">📋 Detailed State Data</h2>
+                <input type="text" id="tableSearch" class="table-search" placeholder="Search states...">
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>State</th>
+                        <th>Total Cases</th>
+                        <th>Imported</th>
+                        <th>Indigenous</th>
+                        <th>Rate per 100K</th>
+                        <th>Population</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="footer-content">
+            <p><strong>Data Source:</strong> National Notifiable Diseases Surveillance System (NNDSS)</p>
+            <p id="footerDate">Loading data information...</p>
+            <p>Centers for Disease Control and Prevention | Public Health Surveillance</p>
+            <div style="margin-top: 1rem;">
+                <a href="index.html" class="nav-link">← Return to Surveillance Hub</a>
+                <a href="measles_imported.html" class="nav-link">View Imported Only</a>
+                <a href="measles_indigenous.html" class="nav-link">View Indigenous Only</a>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Load and combine imported + indigenous measles data
+        const excludedAreas = ["U.S. Residents", "Total", "Non-U.S. Residents", "U.S. Territories", "New England", "Middle Atlantic", "East North Central", "West North Central", "South Atlantic", "East South Central", "West South Central", "Mountain", "Pacific", "American Samoa", "Commonwealth of Northern Mariana Islands", "Guam", "Puerto Rico", "U.S. Virgin Islands", "New York City"];
+        
+        let diseaseData = [];
+        let statesData = [];
+        let latestWeek = 0;
+        let selectedStates = [];
+        
+        const stateAbbreviations = {
+            'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+            'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+            'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+            'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+            'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+            'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+            'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+            'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+            'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+            'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY',
+            'District of Columbia': 'DC'
+        };
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadAllData();
+            initializeStateButtons();
+            updateStats();
+            createMap();
+            createTimeline();
+            createComparisonChart();
+            createTable();
+            
+            document.getElementById('loadingOverlay').style.display = 'none';
+            
+            document.getElementById('tableSearch').addEventListener('input', function() {
+                filterTable(this.value);
+            });
+        });
+        
         async function loadAllData() {
-            const nndssResponse = await fetch('nndss_data.csv');
-            const nndssText = await nndssResponse.text();
-            const nndssResult = Papa.parse(nndssText, { header: true, dynamicTyping: false });
-            
-            const statesResponse = await fetch('states_data.csv');
-            const statesText = await statesResponse.text();
-            const statesResult = Papa.parse(statesText, { header: true, dynamicTyping: true });
-            
-            statesData = statesResult.data;
-            
-            // Combine measles types
-            const measlesImported = nndssResult.data.filter(row => row.Label === 'Measles, Imported');
-            const measlesIndigenous = nndssResult.data.filter(row => row.Label === 'Measles, Indigenous');
-            
-            // Combine by state and week
-            diseaseData = combineMeaslesData(measlesImported, measlesIndigenous);
-            latestWeek = Math.max(...diseaseData.map(d => d['MMWR WEEK']));
-            currentWeek = latestWeek;
+            try {
+                const nndssResponse = await fetch('nndss_data.csv');
+                const nndssText = await nndssResponse.text();
+                const nndssResult = Papa.parse(nndssText, { header: true, dynamicTyping: false });
+                
+                const statesResponse = await fetch('states_data.csv');
+                const statesText = await statesResponse.text();
+                const statesResult = Papa.parse(statesText, { header: true, dynamicTyping: true });
+                
+                statesData = statesResult.data;
+                
+                // Get both measles types
+                const measlesImported = nndssResult.data.filter(row => 
+                    row.Label && row.Label.trim() === 'Measles, Imported' && 
+                    !excludedAreas.includes(row['Reporting Area'])
+                );
+                
+                const measlesIndigenous = nndssResult.data.filter(row => 
+                    row.Label && row.Label.trim() === 'Measles, Indigenous' && 
+                    !excludedAreas.includes(row['Reporting Area'])
+                );
+                
+                // Combine the data
+                diseaseData = combineMeaslesData(measlesImported, measlesIndigenous);
+                latestWeek = Math.max(...diseaseData.map(d => d['MMWR WEEK']));
+                
+                const today = new Date().toLocaleDateString('en-US', { 
+                    year: 'numeric', month: 'long', day: 'numeric' 
+                });
+                document.getElementById('lastUpdated').textContent = `Data current through MMWR Week ${latestWeek}, 2025`;
+                document.getElementById('footerDate').innerHTML = `<strong>Last Updated:</strong> ${today}`;
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading measles surveillance data. Please refresh the page.');
+            }
         }
         
-        // Rest of the code...
+        function combineMeaslesData(imported, indigenous) {
+            const cleanNumber = (val) => {
+                if (!val || val === '-' || val === '') return 0;
+                const cleaned = String(val).replace(/,/g, '').trim();
+                return parseFloat(cleaned) || 0;
+            };
+            
+            // Create a map to combine data by state and week
+            const combinedMap = new Map();
+            
+            // Process imported cases
+            imported.forEach(row => {
+                const key = `${row['Reporting Area']}_${row['MMWR WEEK']}`;
+                const stateInfo = statesData.find(s => s.STNAME === row['Reporting Area']);
+                const population = stateInfo ? stateInfo.POPULATION : 0;
+                
+                const currentWeek = cleanNumber(row['Current week']);
+                const cumulative = cleanNumber(row['Cumulative YTD Current MMWR Year']);
+                
+                combinedMap.set(key, {
+                    'Reporting Area': row['Reporting Area'],
+                    'MMWR WEEK': parseInt(row['MMWR WEEK']) || 0,
+                    'Imported Current week': currentWeek,
+                    'Imported Cumulative': cumulative,
+                    'Indigenous Current week': 0,
+                    'Indigenous Cumulative': 0,
+                    'POPULATION': population,
+                    'LATITUDE': stateInfo ? stateInfo.LATITUDE : 0,
+                    'LONGITUDE': stateInfo ? stateInfo.LONGITUDE : 0
+                });
+            });
+            
+            // Add indigenous cases
+            indigenous.forEach(row => {
+                const key = `${row['Reporting Area']}_${row['MMWR WEEK']}`;
+                const stateInfo = statesData.find(s => s.STNAME === row['Reporting Area']);
+                const population = stateInfo ? stateInfo.POPULATION : 0;
+                
+                const currentWeek = cleanNumber(row['Current week']);
+                const cumulative = cleanNumber(row['Cumulative YTD Current MMWR Year']);
+                
+                if (combinedMap.has(key)) {
+                    const existing = combinedMap.get(key);
+                    existing['Indigenous Current week'] = currentWeek;
+                    existing['Indigenous Cumulative'] = cumulative;
+                } else {
+                    combinedMap.set(key, {
+                        'Reporting Area': row['Reporting Area'],
+                        'MMWR WEEK': parseInt(row['MMWR WEEK']) || 0,
+                        'Imported Current week': 0,
+                        'Imported Cumulative': 0,
+                        'Indigenous Current week': currentWeek,
+                        'Indigenous Cumulative': cumulative,
+                        'POPULATION': population,
+                        'LATITUDE': stateInfo ? stateInfo.LATITUDE : 0,
+                        'LONGITUDE': stateInfo ? stateInfo.LONGITUDE : 0
+                    });
+                }
+            });
+            
+            // Calculate totals and convert to array
+            return Array.from(combinedMap.values()).map(d => ({
+                ...d,
+                'Current week': d['Imported Current week'] + d['Indigenous Current week'],
+                'Cumulative YTD Current MMWR Year': d['Imported Cumulative'] + d['Indigenous Cumulative'],
+                'Cumulative rate': d['POPULATION'] > 0 ? 
+                    ((d['Imported Cumulative'] + d['Indigenous Cumulative']) / d['POPULATION'] * 100000) : 0
+            }));
+        }
+        
+        function initializeStateButtons() {
+            const latestData = diseaseData.filter(d => d['MMWR WEEK'] === latestWeek);
+            const topStates = latestData
+                .sort((a, b) => b['Cumulative YTD Current MMWR Year'] - a['Cumulative YTD Current MMWR Year'])
+                .slice(0, 10)
+                .map(d => d['Reporting Area']);
+            
+            selectedStates = topStates.slice(0, 5);
+            
+            const container = document.getElementById('stateButtons');
+            const allStates = [...new Set(diseaseData.map(d => d['Reporting Area']))].sort();
+            
+            allStates.forEach(state => {
+                const button = document.createElement('button');
+                button.className = 'state-btn';
+                button.textContent = state;
+                button.onclick = () => toggleStateSelection(state, button);
+                
+                if (selectedStates.includes(state)) {
+                    button.classList.add('active');
+                }
+                
+                container.appendChild(button);
+            });
+        }
+        
+        function toggleStateSelection(state, button) {
+            if (selectedStates.includes(state)) {
+                selectedStates = selectedStates.filter(s => s !== state);
+                button.classList.remove('active');
+            } else {
+                if (selectedStates.length < 10) {
+                    selectedStates.push(state);
+                    button.classList.add('active');
+                }
+            }
+            createTimeline();
+        }
+        
+        function updateStats() {
+            const latestData = diseaseData.filter(d => d['MMWR WEEK'] === latestWeek);
+            
+            const totalCases = latestData.reduce((sum, d) => sum + d['Current week'], 0);
+            const totalCumulative = latestData.reduce((sum, d) => sum + d['Cumulative YTD Current MMWR Year'], 0);
+            const totalImported = latestData.reduce((sum, d) => sum + d['Imported Cumulative'], 0);
+            const totalIndigenous = latestData.reduce((sum, d) => sum + d['Indigenous Cumulative'], 0);
+            const totalPopulation = latestData.reduce((sum, d) => sum + d['POPULATION'], 0);
+            const avgRate = totalPopulation > 0 ? (totalCumulative / totalPopulation * 100000).toFixed(2) : 0;
+            const statesReporting = latestData.filter(d => d['Current week'] > 0).length;
+            
+            const statsHTML = `
+                <div class="stat-card">
+                    <div class="stat-value">${totalCases.toLocaleString()}</div>
+                    <div class="stat-label">Current Week Cases</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${totalCumulative.toLocaleString()}</div>
+                    <div class="stat-label">Year-to-Date Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${avgRate}</div>
+                    <div class="stat-label">National Rate per 100K</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${statesReporting}/51</div>
+                    <div class="stat-label">States Reporting Cases</div>
+                </div>
+            `;
+            
+            document.getElementById('statsGrid').innerHTML = statsHTML;
+            document.getElementById('importedCases').textContent = totalImported.toLocaleString();
+            document.getElementById('indigenousCases').textContent = totalIndigenous.toLocaleString();
+        }
+        
+        function createMap() {
+            const data = diseaseData.filter(d => d['MMWR WEEK'] === latestWeek);
+            
+            const mapData = [{
+                type: "choropleth",
+                locationmode: 'USA-states',
+                locations: data.map(d => stateAbbreviations[d['Reporting Area']] || d['Reporting Area']),
+                z: data.map(d => d['Cumulative YTD Current MMWR Year']),
+                text: data.map(d => 
+                    `${d['Reporting Area']}<br>Total: ${d['Cumulative YTD Current MMWR Year'].toLocaleString()}<br>Imported: ${d['Imported Cumulative'].toLocaleString()}<br>Indigenous: ${d['Indigenous Cumulative'].toLocaleString()}<br>Rate: ${d['Cumulative rate'].toFixed(2)}/100K`
+                ),
+                hovertemplate: '%{text}<extra></extra>',
+                colorscale: [
+                    [0, '#f8fafc'],
+                    [0.2, '#fecaca'],
+                    [0.4, '#fca5a5'],
+                    [0.6, '#f87171'],
+                    [0.8, '#dc2626'],
+                    [1, '#991b1b']
+                ],
+                colorbar: {
+                    title: {
+                        text: 'Total Cases',
+                        font: {size: 12}
+                    },
+                    thickness: 15,
+                    len: 0.7
+                }
+            }];
+            
+            const layout = {
+                geo: {
+                    scope: 'usa',
+                    projection: {type: 'albers usa'},
+                    showlakes: true,
+                    lakecolor: 'rgb(255, 255, 255)'
+                },
+                margin: {t: 10, r: 0, b: 0, l: 0},
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('mapChart', mapData, layout, {responsive: true, displayModeBar: false});
+        }
+        
+        function createTimeline() {
+            const timelineData = [];
+            const colors = ['#dc2626', '#ea580c', '#ca8a04', '#65a30d', '#059669', '#0891b2', '#0284c7', '#2563eb', '#7c3aed', '#c026d3'];
+            
+            selectedStates.forEach((state, index) => {
+                const stateData = diseaseData.filter(d => d['Reporting Area'] === state).sort((a, b) => a['MMWR WEEK'] - b['MMWR WEEK']);
+                
+                if (stateData.length > 0) {
+                    timelineData.push({
+                        x: stateData.map(d => d['MMWR WEEK']),
+                        y: stateData.map(d => d['Cumulative YTD Current MMWR Year']),
+                        type: 'scatter',
+                        mode: 'lines+markers',
+                        name: state,
+                        line: {width: 3, color: colors[index % colors.length]},
+                        marker: {size: 5},
+                        hovertemplate: `<b>${state}</b><br>Week %{x}<br>Total: %{y:,}<extra></extra>`
+                    });
+                }
+            });
+            
+            const layout = {
+                xaxis: {title: 'MMWR Week', showgrid: true, gridcolor: '#f1f5f9'},
+                yaxis: {title: 'Cumulative Cases', showgrid: true, gridcolor: '#f1f5f9'},
+                legend: {orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center'},
+                hovermode: 'closest',
+                margin: {t: 30, r: 20, b: 80, l: 60},
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('timelineChart', timelineData, layout, {responsive: true, displayModeBar: false});
+        }
+        
+        function createComparisonChart() {
+            const weeks = [...new Set(diseaseData.map(d => d['MMWR WEEK']))].sort((a, b) => a - b);
+            
+            const importedByWeek = weeks.map(week => {
+                const weekData = diseaseData.filter(d => d['MMWR WEEK'] === week);
+                return weekData.reduce((sum, d) => sum + d['Imported Cumulative'], 0);
+            });
+            
+            const indigenousByWeek = weeks.map(week => {
+                const weekData = diseaseData.filter(d => d['MMWR WEEK'] === week);
+                return weekData.reduce((sum, d) => sum + d['Indigenous Cumulative'], 0);
+            });
+            
+            const comparisonData = [
+                {
+                    x: weeks,
+                    y: importedByWeek,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Imported',
+                    line: {width: 3, color: '#ea580c'},
+                    marker: {size: 6},
+                    fill: 'tonexty'
+                },
+                {
+                    x: weeks,
+                    y: indigenousByWeek,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    name: 'Indigenous',
+                    line: {width: 3, color: '#d97706'},
+                    marker: {size: 6},
+                    fill: 'tozeroy'
+                }
+            ];
+            
+            const layout = {
+                xaxis: {title: 'MMWR Week', showgrid: true, gridcolor: '#f1f5f9'},
+                yaxis: {title: 'Cumulative Cases', showgrid: true, gridcolor: '#f1f5f9'},
+                legend: {orientation: 'h', y: -0.15, x: 0.5, xanchor: 'center'},
+                hovermode: 'x unified',
+                margin: {t: 30, r: 20, b: 80, l: 60},
+                paper_bgcolor: 'rgba(0,0,0,0)'
+            };
+            
+            Plotly.newPlot('comparisonChart', comparisonData, layout, {responsive: true, displayModeBar: false});
+        }
+        
+        function createTable() {
+            const latestData = diseaseData.filter(d => d['MMWR WEEK'] === latestWeek).sort((a, b) => b['Cumulative YTD Current MMWR Year'] - a['Cumulative YTD Current MMWR Year']);
+            
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            latestData.forEach(d => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="font-weight: 600;">${d['Reporting Area']}</td>
+                    <td style="text-align: right;">${d['Cumulative YTD Current MMWR Year'].toLocaleString()}</td>
+                    <td style="text-align: right;">${d['Imported Cumulative'].toLocaleString()}</td>
+                    <td style="text-align: right;">${d['Indigenous Cumulative'].toLocaleString()}</td>
+                    <td style="text-align: right;">${d['Cumulative rate'].toFixed(2)}</td>
+                    <td style="text-align: right;">${d['POPULATION'].toLocaleString()}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+        
+        function filterTable(searchTerm) {
+            const rows = document.getElementById('tableBody').getElementsByTagName('tr');
+            const term = searchTerm.toLowerCase();
+            
+            for (let row of rows) {
+                if (row.cells[0].textContent.toLowerCase().includes(term)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        }
+        
+        window.addEventListener('resize', function() {
+            Plotly.Plots.resize('mapChart');
+            Plotly.Plots.resize('timelineChart');
+            Plotly.Plots.resize('comparisonChart');
+        });
     </script>
 </body>
 </html>
