@@ -13,35 +13,41 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #fafbfc;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #1f2937;
             line-height: 1.6;
+            min-height: 100vh;
         }
         
         .header {
-            background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             color: white;
-            padding: 4rem 0;
+            padding: 3rem 0;
             text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         
         .header-content {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 0 2rem;
         }
         
         .header h1 {
             font-size: 3rem;
-            font-weight: 700;
+            font-weight: 800;
             margin-bottom: 1rem;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
         .header-subtitle {
             font-size: 1.25rem;
             opacity: 0.9;
             margin-bottom: 1.5rem;
-            max-width: 600px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -50,90 +56,89 @@
             display: flex;
             justify-content: center;
             gap: 2rem;
-            font-size: 0.875rem;
-            opacity: 0.8;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+        
+        .header-meta > div {
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
         }
         
         .main-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 3rem 2rem;
+            max-width: 1400px;
+            margin: -2rem auto 0;
+            padding: 0 2rem 3rem;
+            position: relative;
+            z-index: 1;
         }
         
         .intro-section {
-            text-align: center;
-            margin-bottom: 3rem;
             background: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
         
         .intro-section h2 {
             font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
             color: #1f2937;
+            margin-bottom: 1rem;
         }
         
         .intro-section p {
             font-size: 1.1rem;
             color: #6b7280;
-            max-width: 800px;
-            margin: 0 auto;
+            line-height: 1.8;
         }
         
         .diseases-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 2rem;
-            margin-bottom: 3rem;
         }
         
         .disease-card {
             background: white;
-            border-radius: 0.75rem;
+            border-radius: 1rem;
             padding: 2rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
             position: relative;
-            border-top: 4px solid #e5e7eb;
+            overflow: hidden;
         }
         
         .disease-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
         
         .card-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 1.5rem;
         }
         
         .disease-emoji {
-            font-size: 2.5rem;
-            background: #f9fafb;
-            width: 4rem;
-            height: 4rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.75rem;
+            font-size: 3rem;
         }
         
         .disease-priority {
-            width: 0.75rem;
-            height: 0.75rem;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
         }
         
         .disease-card h3 {
             font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
             color: #1f2937;
+            margin-bottom: 1rem;
+            font-weight: 700;
         }
         
         .disease-card p {
@@ -148,62 +153,24 @@
         }
         
         .primary-btn {
-            display: inline-block;
+            flex: 1;
             padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.875rem;
+            background: #6366f1;
             color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-align: center;
             transition: all 0.2s ease;
         }
         
         .primary-btn:hover {
             opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        .info-sections {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .info-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-        }
-        
-        .info-card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #1f2937;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .info-card ul {
-            list-style: none;
-            padding-left: 0;
-        }
-        
-        .info-card li {
-            padding: 0.5rem 0;
-            color: #6b7280;
-            border-bottom: 1px solid #f3f4f6;
-        }
-        
-        .info-card li:last-child {
-            border-bottom: none;
+            transform: scale(1.02);
         }
         
         .footer {
-            background: #1f2937;
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
             color: white;
             text-align: center;
             padding: 3rem 2rem;
@@ -211,13 +178,12 @@
         }
         
         .footer-content {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         
         .footer h3 {
             font-size: 1.5rem;
-            font-weight: 600;
             margin-bottom: 1rem;
         }
         
@@ -226,45 +192,17 @@
             margin-bottom: 0.5rem;
         }
         
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin-top: 2rem;
-            flex-wrap: wrap;
-        }
-        
-        .footer-link {
-            color: #9ca3af;
-            text-decoration: none;
-            font-size: 0.875rem;
-            transition: color 0.2s;
-        }
-        
-        .footer-link:hover {
-            color: white;
-        }
-        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 2rem;
-            }
-            
-            .header-meta {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-            
-            .main-container {
-                padding: 2rem 1rem;
             }
             
             .diseases-grid {
                 grid-template-columns: 1fr;
             }
             
-            .info-sections {
-                grid-template-columns: 1fr;
+            .main-container {
+                padding: 0 1rem 2rem;
             }
         }
     </style>
@@ -277,7 +215,7 @@
                 Comprehensive monitoring and analysis of notifiable diseases across the United States
             </div>
             <div class="header-meta">
-                <div>📅 Updated: September 23, 2025</div>
+                <div id="updateInfo">📅 Data updates automatically</div>
                 <div>🏛️ Centers for Disease Control and Prevention</div>
                 <div>📊 NNDSS Data</div>
             </div>
@@ -286,11 +224,11 @@
     
     <div class="main-container">
         <div class="intro-section">
-            <h2>Public Health Surveillance Dashboards</h2>
+            <h2>Automatically Updated Public Health Surveillance</h2>
             <p>
-                Access real-time surveillance data and analysis for key notifiable diseases. 
-                These dashboards provide state-level case counts, trends, and epidemiological insights 
-                to support public health decision-making and disease prevention efforts.
+                These dashboards load data directly from the latest surveillance files. 
+                Simply upload new data files to keep the dashboards current—no regeneration needed.
+                Monitor disease trends, analyze geographic distribution, and track case rates across all 50 states and D.C.
             </p>
         </div>
         
@@ -357,58 +295,13 @@
         </div>
         
         </div>
-        
-        <div class="info-sections">
-            <div class="info-card">
-                <h3>📊 Dashboard Features</h3>
-                <ul>
-                    <li>Interactive state-level mapping</li>
-                    <li>Customizable timeline analysis</li>
-                    <li>Weekly and cumulative data views</li>
-                    <li>Population-adjusted incidence rates</li>
-                    <li>Searchable data tables</li>
-                    <li>Mobile-responsive design</li>
-                </ul>
-            </div>
-            
-            <div class="info-card">
-                <h3>🎯 Data Sources</h3>
-                <ul>
-                    <li>National Notifiable Diseases Surveillance System (NNDSS)</li>
-                    <li>Morbidity and Mortality Weekly Report (MMWR)</li>
-                    <li>State and local health departments</li>
-                    <li>CDC surveillance programs</li>
-                    <li>US Census Bureau population data</li>
-                </ul>
-            </div>
-            
-            <div class="info-card">
-                <h3>ℹ️ About Surveillance</h3>
-                <ul>
-                    <li>Cases reported by state health departments</li>
-                    <li>Data reflects reporting date, not onset date</li>
-                    <li>Numbers may change as investigations conclude</li>
-                    <li>Rates calculated using 2020 Census estimates</li>
-                    <li>Weekly data follows MMWR week definitions</li>
-                </ul>
-            </div>
-        </div>
     </div>
     
     <div class="footer">
         <div class="footer-content">
             <h3>Centers for Disease Control and Prevention</h3>
-            <p>National Center for Emerging and Zoonotic Infectious Diseases</p>
-            <p>Division of High-Consequence Pathogens and Pathology</p>
-            <p><strong>Data Source:</strong> National Notifiable Diseases Surveillance System (NNDSS)</p>
-            <p><strong>Last Updated:</strong> September 23, 2025</p>
-            
-            <div class="footer-links">
-                <a href="#" class="footer-link">About NNDSS</a>
-                <a href="#" class="footer-link">Data Methods</a>
-                <a href="#" class="footer-link">Technical Notes</a>
-                <a href="#" class="footer-link">Contact Us</a>
-            </div>
+            <p><strong>Data updates automatically</strong> when new CSV files are uploaded</p>
+            <p>National Notifiable Diseases Surveillance System | Public Health Surveillance</p>
         </div>
     </div>
 </body>
